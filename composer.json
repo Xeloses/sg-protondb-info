@@ -1,0 +1,11 @@
+{
+    "name": "xeloses/sg-protondb-info",
+    "type": "project",
+    "description": "ProtonDB info for SteamGifts",
+    "keywords": ["userscript", "steamgifts", "protondb"],
+    "homepage": "https://github.com/Xeloses/sg-protondb-info",
+    "license": "GPL-3.0",
+    "authors": [
+        {"name": "Xeloses"}
+    ],
+}
