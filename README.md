@@ -12,16 +12,16 @@ Usercript for SteamGifts. Adds Linux compatibility info from ProtonDB to games i
 
 ## Examples
 * SteamGifts homepage in Firefox (Xubuntu Linux) without another addons:
-![Preview](https://raw.github.com/Xeloses/sg-protondb-info/master/img/linux-firefox.jpg)
+![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox.jpg)
 
 * SteamGifts homepage in Firefox (Xubuntu Linux) with "ESGST" and "Dark Reader" addons:
-![Preview](https://raw.github.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader.jpg)
+![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader.jpg)
 
 * Giveaway page in Firefox with (Xubuntu Linux) "ESGST" and "Dark Reader" addons:
-![Preview](https://raw.github.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--single.jpg)
+![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--single.png)
 
 * Entered giveaways list in Firefox (Xubuntu Linux) with "ESGST" and "Dark Reader" addons:
-![Preview](https://raw.github.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--entered.jpg)
+![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--entered.jpg)
 
 ## Installation:
 1. Install **"Tampermonkey"** addon for your browser:
