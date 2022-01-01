@@ -3,24 +3,26 @@
 Usercript for SteamGifts. Adds Linux compatibility info from ProtonDB to games in giveaways.
 
 ## Compatibility:
-* Compatible with **ESGST** (*normal view only*).
-* Compatible with **Dark Reader**.
-
+* Compatible with **ESGST** addon (*normal view only*).
+* Compatible with **Dark Reader** addon.
 * Should be compatible with another "Dark-styling" addons, but may have visual issues.
-
-* Incompatible with grid-view of **ESGST** (*ESGST option 3.27*).
+* Incompatible with grid-view of **ESGST** addon (*ESGST option 3.27*).
 
 ## Examples
-* SteamGifts homepage in Firefox (Xubuntu Linux) without another addons:
+* SteamGifts homepage in **Firefox** (*Xubuntu Linux*) without another addons:
+
 ![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox.jpg)
 
-* SteamGifts homepage in Firefox (Xubuntu Linux) with "ESGST" and "Dark Reader" addons:
+* SteamGifts homepage in **Firefox** (*Xubuntu Linux*) with **"ESGST"** and **"Dark Reader"** addons:
+
 ![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader.jpg)
 
-* Giveaway page in Firefox with (Xubuntu Linux) "ESGST" and "Dark Reader" addons:
+* Giveaway page in **Firefox** (*Xubuntu Linux*) with **"ESGST"** and **"Dark Reader"** addons:
+
 ![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--single.png)
 
-* Entered giveaways list in Firefox (Xubuntu Linux) with "ESGST" and "Dark Reader" addons:
+* Entered giveaways list in **Firefox** (*Xubuntu Linux*) with **"ESGST"** and **"Dark Reader"** addons:
+
 ![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox-esgst-darkreader--entered.jpg)
 
 ## Installation:
