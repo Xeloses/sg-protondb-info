@@ -2,7 +2,7 @@
 // @name         SteamGifts: ProtonDB info
 // @description  Add game info from ProtonDB to the games on SteamGifts.
 // @author       Xeloses
-// @version      1.0.0
+// @version      1.0.0.1
 // @copyright    Copyright (C) 2021-2022, by Xeloses
 // @license      GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // @namespace    Xeloses.SG.ProtonDB.GameInfo
@@ -236,17 +236,17 @@
     };
 
     /*
-     * @const "New line" symbol.
+     * @const Cache lifetime.
      */
-    const nl = "\n";
+    const cache_lifetime = 7 /* days */ * 86400000;
 
     /*
-     * @const Flag indicates games list was updated.
+     * @var Flag indicates games list was updated.
      */
     let updated = false;
 
     /*
-     * Requests counter.
+     * @var Requests counter.
      */
     let count_requests = {
             protondb: 0,
@@ -265,25 +265,10 @@
     }
 
     /**
-     * Store game in cache
-     *
-     * @param  {String}  id   AppID of the game
-     * @param  {Object}  data
-     * @return {Object}
-     */
-    function _cache(id, data)
-    {
-        data.t = Date.now();
-        CACHE.add(id, data);
-        updated = true;
-        return data;
-    }
-
-    /**
      * Wait for page loading/processing.
      *
      * @param  {String}  sel  CSS selector of element to wait for
-     * @return {Object}
+     * @return {Promise}      empty Promise
      */
     async function waitPageLoading(sel)
     {
@@ -301,28 +286,27 @@
      */
     function injectCSS()
     {
-        let css = '.protondb_info > .fa, .protondb_info > span {color: inherit !important; font-weight: bold;}'+
-                  '.protondb_info:not(.protondb_tier_unknown) > .fa, .protondb_info:not(.protondb_tier_unknown) > span {text-shadow: 1px 0 1px #555, 0 1px 1px #555, -1px 0 1px #555, 0 -1px 1px #555;}'+
-                  '.protondb_info > span {display: inline-block; margin: 0 5px 0 3px;}'+
-                  '.protondb_info .protondb_tooltip {display: none; position: absolute; margin: 20px 0 0 -3px; padding: 5px 10px; line-height: 1rem; color: #eee; background: rgba(1,1,1,.8); border: solid 1px #555; border-radius: 5px; white-space: pre-line; text-shadow: none; z-index: 990;}'+
-                  '.protondb_info:hover .protondb_tooltip {display: block;}'+
-                  '.protondb_tooltip * {display: block;}'+
-                  '.protondb_tooltip span {font-weight: bold; border-bottom: dotted 1px;}'+
-                  '.protondb_tooltip dl {margin: 5px 10px; font-family: sans-serif;}'+
-                  '.protondb_tooltip dt {float: left; clear: left; margin-right: 5px;}'+
-                  '.protondb_tooltip dd {loat: right; clear: right; font-weight: bold;}'+
-                  '.protondb_tooltip p {font-weight: bold;}'+
-                  '.protondb_tooltip small {margin-top: 5px; font-size: .75rem; font-style: italic;}'+
-                  '.giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin-left: 10px;}'+ // SG homepage only
-                  '.giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin-right: 10px;}'+ // SG homepage only
-                  '.giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;};'+ // SG homepage only (initial SG style fix)
-                  '.giveaway__row-inner-wrap.is-faded .protondb_tooltip {display: none !important;}'+ // SG homepage only (ESGST fix)
-                  '.featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;}'+ // SG featured giveaway
-                  '.featured__container .protondb_tooltip {margin: 30px 0 0 -10px;}'+ // SG featured giveaway
-                  '.table__row-outer-wrap .protondb_info {margin-left: 10px; line-height: 1.2rem;}'+ // SG giveaways tables (e.g. Entered giveaways)
-                  '.table__row-outer-wrap .protondb_tooltip {margin: 5px 0 0 -2px;}'+ // SG giveaways tables (e.g. Entered giveaways)
-                  '[data-darkreader-scheme="dark"] .protondb_info .protondb_tooltip {background: rgba(1,1,1,.85);}'+ // DarkReader compatibility
-                  '[data-darkreader-scheme="dark"] .protondb_info > * {text-shadow: none !important;}'; // DarkReader compatibility
+        let css = `.protondb_info > .fa, .protondb_info > span {color: inherit !important; font-weight: bold;}
+                   .protondb_info:not(.protondb_tier_unknown) > .fa, .protondb_info:not(.protondb_tier_unknown) > span {text-shadow: 1px 0 1px #555, 0 1px 1px #555, -1px 0 1px #555, 0 -1px 1px #555;}
+                   .protondb_info > span {display: inline-block; margin: 0 5px 0 3px;}
+                   .protondb_info .protondb_tooltip {display: none; position: absolute; margin: 20px 0 0 -3px; padding: 5px 10px; line-height: 1rem; color: #eee; background: rgba(1,1,1,.8); border: solid 1px #555; border-radius: 5px; white-space: pre-line; text-shadow: none; z-index: 990;}
+                   .giveaway__row-inner-wrap:not(.is-faded) .protondb_info:hover .protondb_tooltip, .table__row-inner-wrap .protondb_info:hover .protondb_tooltip, .featured__container .protondb_info:hover .protondb_tooltip {display: block;}
+                   .protondb_tooltip * {display: block;}
+                   .protondb_tooltip span {font-weight: bold; border-bottom: dotted 1px;}
+                   .protondb_tooltip dl {margin: 5px 10px; font-family: sans-serif;}
+                   .protondb_tooltip dt {float: left; clear: left; margin-right: 5px;}
+                   .protondb_tooltip dd {font-weight: bold;}
+                   .protondb_tooltip p {font-weight: bold;}
+                   .protondb_tooltip small {margin-top: 5px; font-size: .75rem; font-style: italic;}
+                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin-left: 10px;} /* SG homepage only */
+                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin-right: 10px;} /* SG homepage only */
+                   .giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;} /* SG homepage only (initial SG style fix) */
+                   .featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;} /* SG featured giveaway */
+                   .featured__container .protondb_tooltip {margin: 30px 0 0 -10px;} /* SG featured giveaway */
+                   .table__row-outer-wrap .protondb_info {margin-left: 10px; line-height: 1.2rem;} /* SG giveaways tables (e.g. Entered giveaways) */
+                   .table__row-outer-wrap .protondb_tooltip {margin: 3px 0 0 -2px;} /* SG giveaways tables (e.g. Entered giveaways) */
+                   [data-darkreader-scheme="dark"] .protondb_info .protondb_tooltip {background: rgba(1,1,1,.85);} /* DarkReader compatibility */
+                   [data-darkreader-scheme="dark"] .protondb_info > * {text-shadow: none !important;} /* DarkReader compatibility */`;
 
         for(const tier in ProtonDB_Tier)
         {
@@ -332,7 +316,8 @@
 
         let el = document.createElement('STYLE');
         el.type = 'text/css';
-        el.innerText = css;
+        el.id = 'protondb-info-style';
+        el.innerHTML = css;
         document.head.appendChild(el);
     }
 
@@ -372,13 +357,30 @@
     }
 
     /**
-     * Get game rating/tier from ProtonDB and/or Steam WebAPI.
+     * Store game in the cache.
+     *
+     * @param  {String}  id    AppID of the game
+     * @param  {Object}  data
+     * @return {Object}
+     */
+    function _cache(id, data)
+    {
+        data.t = Date.now();
+        CACHE.add(id, data);
+        updated = true;
+        return data;
+    }
+
+    /**
+     * Get game tier from ProtonDB and/or Steam WebAPI.
      *
      * @param  {String}  id  AppID of the game
      * @return {Promise}
      */
     async function loadGameInfo(id)
     {
+        await _sleep(330); // wait 330ms (0.33s) to prevent spamming requests
+
         let data = null,
             r = await _fetch(URL.API.ProtonDB.replace('{%appid%}', id));
         count_requests.protondb++;
@@ -424,6 +426,8 @@
         }
         else
         {
+            await _sleep(330); // wait 330ms (0.33s) to prevent spamming requests
+
             let r = await _fetch(URL.API.Steam.Package.replace('{%appid%}', id));
             count_requests.steam++;
 
@@ -452,7 +456,7 @@
     }
 
     /**
-     * Process single game
+     * Process single game.
      *
      * @param  {DomElement} el
      * @return {Promise}
@@ -468,21 +472,18 @@
         if(CACHE.has(id))
         {
             data = CACHE.get(id);
-        }
-        else
-        {
-            await _sleep(330); // wait 330ms (0.33s) to prevent spamming requests
-            data = ( a.href.includes('/app/') ? await loadGameInfo(id) : await loadPackageInfo(id));
+
+            if((Date.now() - data.t) > cache_lifetime) data = null;
         }
 
-        // @TODO check game record timestamp and update record if expired
+        if(!data) data = ( a.href.includes('/app/') ? await loadGameInfo(id) : await loadPackageInfo(id));
 
         el.dataset.appid = id;
         renderGameInfo(id, data, el);
     }
 
     /**
-     * Process list of games
+     * Process list of games.
      *
      * @param  {String}  sel  CSS selector
      * @return {Promise}
