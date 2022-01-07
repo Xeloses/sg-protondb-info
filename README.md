@@ -1,14 +1,16 @@
 # ProtonDB info for SteamGifts
 
-Usercript for SteamGifts. Adds Linux compatibility info from ProtonDB to games in giveaways.
+Usercript for SteamGifts. 
+
+Adds Linux compatibility info from ProtonDB to games in giveaways on SteamGifts.
 
 ## Compatibility:
-* Compatible with **ESGST** addon (*normal view only*).
-* Compatible with **Dark Reader** addon.
+* \[+\] Compatible with **ESGST** addon (*normal view only*).
+* \[+\] Compatible with **Dark Reader** addon.
 * Should be compatible with another "Dark-styling" addons, but may have visual issues.
-* Incompatible with grid-view of **ESGST** addon (*ESGST option 3.27*).
+* \[-\] Incompatible with grid-view of **ESGST** addon (*ESGST option 3.27*).
 
-## Examples
+## Preview
 * SteamGifts homepage in **Firefox** (*Xubuntu Linux*) without another addons:
 
 ![Preview](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/img/linux-firefox.jpg)
@@ -31,5 +33,5 @@ Usercript for SteamGifts. Adds Linux compatibility info from ProtonDB to games i
     * **Mozilla Firefox**: [install](https://addons.mozilla.org/ru/firefox/addon/tampermonkey/)
     * **Opera**: [install](https://addons.opera.com/en/extensions/details/tampermonkey-beta/)
     * **Safari** (MacOS): [install](https://apps.apple.com/us/app/tampermonkey/id1482490089)
-    * **IE/Edge**: *no support*
+    * **IE/Edge**: *not supported*
 2. Install userscript: [install](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/sg-protondb-info.user.js)
