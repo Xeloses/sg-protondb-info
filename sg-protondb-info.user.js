@@ -2,7 +2,7 @@
 // @name         SteamGifts: ProtonDB info
 // @description  Add game info from ProtonDB to the games on SteamGifts.
 // @author       Xeloses
-// @version      1.0.0.2
+// @version      1.0.0.3
 // @copyright    Copyright (C) 2021-2022, by Xeloses
 // @license      GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // @namespace    Xeloses.SG.ProtonDB.GameInfo
@@ -39,7 +39,6 @@
      * @method warn({String} message)
      * @method error({String} message)
      */
-    // init Log:
     class XelLog{constructor(){let d=GM_info.script;this.author=d.author;this.app=d.name;this.ns=d.namespace;this.version=d.version;this.h='color:#c5c;font-weight:bold;';this.t='color:#ddd;font-weight:normal;';}log(s){console.log('%c['+this.app+']%c '+s,this.h,this.t)}info(s){console.info('%c['+this.app+']%c '+s,this.h,this.t+'font-style:italic;')}warn(s){console.warn('%c['+this.app+']%c '+s,this.h,this.t)}error(s){console.error('%c['+this.app+']%c '+s,this.h,this.t)}}
     const LOG = new XelLog();
 
@@ -225,13 +224,25 @@
     ];
 
     /*
-     * @const SteamGifts pages with game(s) (pages to be processed by script) and CSS selectors for those pages.
+     * @const SteamGifts pages to be processed by script with CSS selectors for those pages.
      */
     const SG = {
-        Homepage: '.giveaway__row-outer-wrap', // SG homepage
+        /* Pages matching full address (without domain) */
         Pages: {
-            'giveaway/': '.featured__outer-wrap',
-            'giveaways/entered': '.table__row-outer-wrap'
+            '/': '.giveaway__row-outer-wrap', // SG homepage
+            '/giveaways': '.giveaway__row-outer-wrap', // SG homepage
+            '/giveaways/search': '.giveaway__row-outer-wrap', // Giveaways search
+            '/search/giveaways': '.giveaway__row-outer-wrap', // Giveaways search
+            '/giveaways/entered': '.table__row-outer-wrap' // Entered giveaways
+        },
+        /* Pages matching beginning part of address (without domain) */
+        PagesMask: {
+            '/giveaway/': '.featured__outer-wrap' // Giveaway page
+        },
+        /* Pages matching address by RegExp (without domain) */
+        PagesRegex: {
+            '^\\/user\\/[^\\/]+$': '.giveaway__row-outer-wrap', // User' giveaways
+            '^\\/group\\/[\\w]{5}\\/[^\\/]+$': '.giveaway__row-outer-wrap' // Group' giveaways
         }
     };
 
@@ -298,13 +309,13 @@
                    .protondb_tooltip dd {font-weight: bold;}
                    .protondb_tooltip p {font-weight: bold;}
                    .protondb_tooltip small {margin-top: 5px; font-size: .75rem; font-style: italic;}
-                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin-left: 10px;} /* SG homepage only */
-                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin-right: 10px;} /* SG homepage only */
-                   .giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;} /* SG homepage only (initial SG style fix) */
-                   .featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;} /* SG featured giveaway */
-                   .featured__container .protondb_tooltip {margin: 30px 0 0 -10px;} /* SG featured giveaway */
-                   .table__row-outer-wrap .protondb_info {margin-left: 10px; line-height: 1.2rem;} /* SG giveaways tables (e.g. Entered giveaways) */
-                   .table__row-outer-wrap .protondb_tooltip {margin: 3px 0 0 -2px;} /* SG giveaways tables (e.g. Entered giveaways) */
+                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin-left: 10px;}
+                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin-right: 10px;}
+                   .giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;} /* initial SG style fix */
+                   .featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;}
+                   .featured__container .protondb_tooltip {margin: 30px 0 0 -10px;}
+                   .table__row-outer-wrap .protondb_info {margin-left: 10px; line-height: 1.2rem;}
+                   .table__row-outer-wrap .protondb_tooltip {margin: 3px 0 0 -2px;}
                    [data-darkreader-scheme="dark"] .protondb_info .protondb_tooltip {background: rgba(1,1,1,.85);} /* DarkReader compatibility */
                    [data-darkreader-scheme="dark"] .protondb_info > * {text-shadow: none !important;} /* DarkReader compatibility */`;
 
@@ -496,6 +507,20 @@
         {
             await processGame(game);
         }
+    }
+
+    /**
+     * Main entry point.
+     *
+     * @param  {String}  sel  CSS selector
+     * @return {Void}
+     */
+    function process(sel)
+    {
+        injectCSS();
+        LOG.info('App loaded (version: ' + LOG.version + ')');
+
+        processList(sel);
 
         if(updated) CACHE.save();
         LOG.info('Job completed. Requests to ProtonDB: ' + count_requests.protondb + ', to Steam: ' + count_requests.steam + ' (games in the cache: ' + CACHE.count() + ').');
@@ -504,24 +529,7 @@
     /*
      * Main section.
      */
-
-    injectCSS();
-    LOG.info('App loaded (version: ' + LOG.version + ')');
-
-    if(location.pathname == '/' || location.pathname == '/giveaways/search')
-    {
-        processList(SG.Homepage);
-    }
-    else
-    {
-        for(const page in SG.Pages)
-        {
-            if(location.pathname.startsWith('/' + page))
-            {
-                processList(SG.Pages[page]);
-                break;
-            }
-        }
-    }
-
+    for(const page in SG.Pages) if(location.pathname == page) return process(SG.Pages[page]);
+    for(const page in SG.PagesMask) if(location.pathname.startsWith(page)) return process(SG.PagesMask[page]);
+    for(const page in SG.PagesRegex) if((new RegExp(page)).test(location.pathname)) return process(SG.PagesRegex[page]);
 })();
