@@ -13,6 +13,8 @@ To reduce the count of requests to the Steam and ProtonDB servers (and prevent b
 * Giveaway page
 * Giveaways search
 * Entered giveaways list
+* Group' giveaways
+* User' giveaways
 
 ## Compatibility:
 * \[+\] Compatible with **ESGST** addon *(normal view only)*.
@@ -71,3 +73,5 @@ To reduce the count of requests to the Steam and ProtonDB servers (and prevent b
     * Add cache expiration time *(default: 1 week)*.
 * 1.0.0.2
     * Fix for giveaways search page.
+* 1.0.0.3
+    * Process User' and Group' giveaways pages.
