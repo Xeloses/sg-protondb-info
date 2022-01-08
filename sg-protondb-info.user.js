@@ -2,7 +2,7 @@
 // @name         SteamGifts: ProtonDB info
 // @description  Add game info from ProtonDB to the games on SteamGifts.
 // @author       Xeloses
-// @version      1.0.0.1
+// @version      1.0.0.2
 // @copyright    Copyright (C) 2021-2022, by Xeloses
 // @license      GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // @namespace    Xeloses.SG.ProtonDB.GameInfo
@@ -508,7 +508,7 @@
     injectCSS();
     LOG.info('App loaded (version: ' + LOG.version + ')');
 
-    if(location.pathname == '/')
+    if(location.pathname == '/' || location.pathname == '/giveaways/search')
     {
         processList(SG.Homepage);
     }
