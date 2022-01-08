@@ -68,3 +68,5 @@ To reduce the count of requests to the Steam and ProtonDB servers (and prevent b
     * Initial release.
 * 1.0.0.1
     * Add cache expiration time *(default: 1 week)*.
+* 1.0.0.2
+    * Fix for giveaways search page.
