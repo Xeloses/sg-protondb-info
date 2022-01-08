@@ -11,6 +11,7 @@ To reduce the count of requests to the Steam and ProtonDB servers (and prevent b
 ### Steamgifts pages processed by script:
 * Home page
 * Giveaway page
+* Giveaways search
 * Entered giveaways list
 
 ## Compatibility:
