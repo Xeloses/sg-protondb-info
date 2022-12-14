@@ -1,14 +1,15 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name         SteamGifts: ProtonDB info
 // @description  Add game info from ProtonDB to the games on SteamGifts.
 // @author       Xeloses
-// @version      1.0.0.3
+// @version      1.0.0.4
 // @copyright    Copyright (C) 2021-2022, by Xeloses
 // @license      GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // @namespace    Xeloses.SG.ProtonDB.GameInfo
-// @website      https://github.com/Xeloses/sg-protondb-integration
+// @website      https://github.com/Xeloses/sg-protondb-info
 // @downloadURL  https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/sg-protondb-info.user.js
 // @updateURL    https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/sg-protondb-info.user.js
+// @icon         https://www.google.com/s2/favicons?sz=32&domain=steamgifts.com
 // @match        https://steamgifts.com/*
 // @match        https://www.steamgifts.com/*
 // @grant        GM.xmlHttpRequest
@@ -25,173 +26,6 @@
     'use strict';
 
     if(!location.hostname.endsWith('steamgifts.com')) return;
-
-    /*
-     * @class     XelLog
-     * @classdesc Console API wrapper.
-     *
-     * @property {String} app
-     * @property {String} version
-     * @property {String} ns
-     * @property {String} author
-     * @method log({String} message)
-     * @method info({String} message)
-     * @method warn({String} message)
-     * @method error({String} message)
-     */
-    class XelLog{constructor(){let d=GM_info.script;this.author=d.author;this.app=d.name;this.ns=d.namespace;this.version=d.version;this.h='color:#c5c;font-weight:bold;';this.t='color:#ddd;font-weight:normal;';}log(s){console.log('%c['+this.app+']%c '+s,this.h,this.t)}info(s){console.info('%c['+this.app+']%c '+s,this.h,this.t+'font-style:italic;')}warn(s){console.warn('%c['+this.app+']%c '+s,this.h,this.t)}error(s){console.error('%c['+this.app+']%c '+s,this.h,this.t)}}
-    const LOG = new XelLog();
-
-    /*
-     * @class     XelUserscriptStorage
-     * @classdesc Userscript storage API wrapper.
-     *
-     * @method has({String} name)
-     * @method get({String} name)
-     * @method add({String} name, {Mixed} value)
-     * @method set({String} name, {Mixed} value)
-     * @method empty()
-     * @method clear()
-     * @method load()
-     * @method save()
-     * @method on({String} event, {Function} callback)
-     */
-    class XelUserscriptStorage
-    {
-        constructor(name)
-        {
-            if(!name || !name.trim().length) throw new Error('XelUserscriptStorage error: could not create object instance with empty "name".');
-
-            this.name = name.trim();
-            this._e = {};
-            this._d = null;
-            this.load();
-        }
-
-        load()
-        {
-            try
-            {
-                let data = JSON.parse(GM_getValue(this.name, []));
-                this._d = new Map( data ? data : [] );
-            }
-            catch(e)
-            {
-                this._d = new Map();
-            }
-            this._trigger('load');
-            return this;
-        }
-
-        save()
-        {
-            if(this._d)
-            {
-                GM_setValue(this.name, JSON.stringify(Array.from(this._d)));
-            }
-            this._trigger('save');
-            return this;
-        }
-
-        has(name){ return this._d.has(name); }
-        get(name){ return this._d.has(name) ? this._d.get(name) : null; }
-        add(name,value){ return this.set(name,value); }
-        set(name,value){ this._d.set(name,value); return this; }
-        clear(){ this._d = new Map(); return this.save(); }
-        count(){ return (this._d) ? this._d.size : 0; }
-        empty(){ return this.count() > 0; }
-
-        on(name, callback)
-        {
-            if(!this._e[name]) this._e[name] = [];
-            this._e[name].push(callback);
-            return this;
-        }
-
-        _trigger(name, data)
-        {
-            if(!this._e[name] || !this._e[name].length) return;
-            this._e[name].forEach(callback => callback(data));
-            return this;
-        }
-    }
-    const CACHE = new XelUserscriptStorage('cache'),
-          PackagesData = new XelUserscriptStorage('packages');
-
-    /**
-     * Fetch implementation for Usescripts.
-     */
-    function _fetch(url, options = null)
-    {
-        const defaults = {
-            method: 'GET',
-            response_type: 'json',
-            anonymous: true,
-            nocache: true,
-            console_errors: false
-        };
-
-        const $xhr = (typeof GM.xmlhttpRequest !== 'undefined') ? GM.xmlhttpRequest : GM_xmlhttpRequest;
-
-        options = options ? {...defaults, ...options} : defaults;
-
-        return new Promise((resolve,reject) => {
-            $xhr({
-                method: options.method,
-                url: url,
-                anonymous: options.anonymous,
-                nocache: options.nocache,
-                responseType: options.response_type,
-                onload:function(response)
-                {
-                    if(response.status && response.status == 200)
-                    {
-                        if(response.response && response.response.length)
-                        {
-                            resolve(response.response);
-                        }
-                        else if(response.responseText && response.responseText.length)
-                        {
-                            if(options.response_type == 'json')
-                            {
-                                try
-                                {
-                                    resolve(JSON.parse(response.responseText));
-                                }
-                                catch(err)
-                                {
-                                    reject(err);
-                                }
-                            }
-                            else
-                            {
-                                resolve(response.responseText);
-                            }
-                        }
-                        else
-                        {
-                            reject(new Error(response.statusText));
-                        }
-                    }
-                    else
-                    {
-                        reject(new Error((response.status ? response.status + ' ' : '') + response.statusText));
-                    }
-                },
-                onerror:function(response)
-                {
-                    reject(new Error((response.status ? response.status + ' ' : '') + response.statusText));
-                },
-            });
-        }).catch(err => {
-            if(options.console_errors) console.error('[Error] Fetch failed on "' + url + "\".\n" + err.message);
-        });
-    }
-
-    /**
-     * Sleep (delay) implementation.
-     */
-    async function _sleep(t){ return new Promise(f => setTimeout(f, t+1)); }
 
     /*
      * @const URLs & WebAPI endpoint templatess.
@@ -259,10 +93,68 @@
     /*
      * @var Requests counter.
      */
-    let count_requests = {
+    const count_requests = {
             protondb: 0,
             steam: 0
         };
+
+    /*
+     * @class     XelLog
+     * @classdesc Console API wrapper.
+     *
+     * @property {String} app
+     * @property {String} version
+     * @property {String} ns
+     * @property {String} author
+     * @method log({String} message)
+     * @method info({String} message)
+     * @method warn({String} message)
+     * @method error({String} message)
+     */
+    class XelLog{constructor(){let d=GM_info.script;this.author=d.author;this.app=d.name;this.ns=d.namespace;this.version=d.version;this.h='color:#c5c;font-weight:bold;';this.t='color:#ddd;font-weight:normal;';}log(s){console.log('%c['+this.app+']%c '+s,this.h,this.t)}info(s){console.info('%c['+this.app+']%c '+s,this.h,this.t+'font-style:italic;')}warn(s){console.warn('%c['+this.app+']%c '+s,this.h,this.t)}error(s){console.error('%c['+this.app+']%c '+s,this.h,this.t)}}
+    const LOG = new XelLog();
+
+    /*
+     * @class     XelUserscriptStorage
+     * @classdesc Userscript storage API wrapper.
+     *
+     * @method has({String} name)
+     * @method get({String} name)
+     * @method add({String} name, {Mixed} value)
+     * @method set({String} name, {Mixed} value)
+     * @method empty()
+     * @method clear()
+     * @method load()
+     * @method save()
+     * @method on({String} event, {Function} callback)
+     */
+    class XelUserscriptStorage
+    {
+        constructor(name){ if(!name || !name.trim().length) throw new Error('XelUserscriptStorage error: could not create object instance with empty "name".'); this.name = name.trim(); this._e = {}; this._d = null; this.load(); }
+        load(){ try{ let data = JSON.parse(GM_getValue(this.name, [])); this._d = new Map( data ? data : [] ); }catch(e){ this._d = new Map(); } this._trigger('load'); return this; }
+        save(){ if(this._d) GM_setValue(this.name, JSON.stringify(Array.from(this._d))); this._trigger('save'); return this; }
+        has(name){ return this._d.has(name); }
+        get(name){ return this._d.has(name) ? this._d.get(name) : null; }
+        add(name,value){ return this.set(name,value); }
+        set(name,value){ this._d.set(name,value); return this; }
+        clear(){ this._d = new Map(); return this.save(); }
+        count(){ return (this._d) ? this._d.size : 0; }
+        empty(){ return this.count() > 0; }
+        on(name, callback){ if(!this._e[name]) this._e[name] = []; this._e[name].push(callback); return this; }
+        _trigger(name, data){ if(!this._e[name] || !this._e[name].length) return;this._e[name].forEach(callback => callback(data));return this; }
+    }
+    const CACHE = new XelUserscriptStorage('cache'),
+          PackagesData = new XelUserscriptStorage('packages');
+
+    /**
+     * Fetch implementation for Usescripts.
+     */
+    function _fetch(url, options = null){ const defaults = { method: 'GET', response_type: 'json', anonymous: true, nocache: true, console_errors: false }, $xhr = (typeof GM.xmlhttpRequest !== 'undefined') ? GM.xmlhttpRequest : GM_xmlhttpRequest; options = options ? {...defaults, ...options} : defaults; return new Promise((resolve,reject) => { $xhr({ method: options.method, url: url, anonymous: options.anonymous, nocache: options.nocache, responseType: options.response_type, onload:function(response){ if(response.status && response.status == 200) { if(response.response && response.response.length) resolve(response.response); else if(response.responseText && response.responseText.length){ if(options.response_type == 'json') try{ resolve(JSON.parse(response.responseText)); }catch(err){ reject(err); }else resolve(response.responseText); }else reject(new Error(response.statusText));}else reject(new Error((response.status ? response.status + ' ' : '') + response.statusText)); }, onerror:function(response){ reject(new Error((response.status ? response.status + ' ' : '') + response.statusText)); }})}).catch(err => { if(options.console_errors) console.error('[Error] Fetch failed on "' + url + "\".\n" + err.message); }); }
+
+    /**
+     * Sleep (delay) implementation.
+     */
+    async function _sleep(t){ return new Promise(f => setTimeout(f, t+1)); }
 
     /**
      * Returns index for specified tier.
@@ -309,8 +201,8 @@
                    .protondb_tooltip dd {font-weight: bold;}
                    .protondb_tooltip p {font-weight: bold;}
                    .protondb_tooltip small {margin-top: 5px; font-size: .75rem; font-style: italic;}
-                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin-left: 10px;}
-                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin-right: 10px;}
+                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin: 0 5px;}
+                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin: 0 5px;}
                    .giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;} /* initial SG style fix */
                    .featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;}
                    .featured__container .protondb_tooltip {margin: 30px 0 0 -10px;}
@@ -327,8 +219,8 @@
 
         let el = document.createElement('STYLE');
         el.type = 'text/css';
-        el.id = 'protondb-info-style';
-        el.innerHTML = css;
+        el.id = GM_info.script.namespace.toLowerCase().replace('.','-');
+        el.innerText = css.replace(/[\s]{2,}/g,' ');
         document.head.appendChild(el);
     }
 
@@ -364,7 +256,7 @@
 
         if(game.classList.contains('featured__outer-wrap')) el.classList.add('featured__column');
 
-        game.querySelector('.giveaway__links, .featured__columns, .table__column--width-fill > p:last-of-type').appendChild(el);
+        game.querySelector('.giveaway__links > a:last-of-type, .featured__columns > a:last-of-type, .table__column--width-fill > p:last-of-type').appendChild(el);
     }
 
     /**
