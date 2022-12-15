@@ -2,7 +2,7 @@
 // @name         SteamGifts: ProtonDB info
 // @description  Add game info from ProtonDB to the games on SteamGifts.
 // @author       Xeloses
-// @version      1.0.0.4
+// @version      1.0.0.5
 // @copyright    Copyright (C) 2021-2022, by Xeloses
 // @license      GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // @namespace    Xeloses.SG.ProtonDB.GameInfo
@@ -201,23 +201,21 @@
                    .protondb_tooltip dd {font-weight: bold;}
                    .protondb_tooltip p {font-weight: bold;}
                    .protondb_tooltip small {margin-top: 5px; font-size: .75rem; font-style: italic;}
-                   .giveaway__row-outer-wrap .protondb_info:first-child::after {content: "\u2022"; color: #777; font-weight: bold; margin: 0 5px;}
-                   .giveaway__row-outer-wrap .protondb_info:last-child::before {content: "\u2022"; color: #777; font-weight: bold; margin: 0 5px;}
                    .giveaway__row-outer-wrap .giveaway__links a {margin-right: 10px;} /* initial SG style fix */
                    .featured__container .protondb_info {float: left; order: -999; margin-right: 5px; border: dashed 1px #555;}
                    .featured__container .protondb_tooltip {margin: 30px 0 0 -10px;}
-                   .table__row-outer-wrap .protondb_info {margin-left: 10px; line-height: 1.2rem;}
+                   .table__row-outer-wrap .protondb_info {margin-right: 7px; line-height: 1.2rem;}
                    .table__row-outer-wrap .protondb_tooltip {margin: 3px 0 0 -2px;}
                    [data-darkreader-scheme="dark"] .protondb_info .protondb_tooltip {background: rgba(1,1,1,.85);} /* DarkReader compatibility */
                    [data-darkreader-scheme="dark"] .protondb_info > * {text-shadow: none !important;} /* DarkReader compatibility */`;
 
         for(const tier in ProtonDB_Tier)
         {
-            let sel = '.protondb_tier_' + ProtonDB_Tier[tier].name;
-            if(ProtonDB_Tier[tier].color) css += "\n" + sel + '{color: ' + ProtonDB_Tier[tier].color + ";}\n" + sel +' .protondb_tier_color {color: ' + ProtonDB_Tier[tier].color + ' !important;}';
+            const sel = `.protondb_tier_${ProtonDB_Tier[tier].name}`;
+            if(ProtonDB_Tier[tier].color) css += `\n${sel}{color: ${ProtonDB_Tier[tier].color};}\n${sel} .protondb_tier_color {color: ${ProtonDB_Tier[tier].color} !important;}`;
         }
 
-        let el = document.createElement('STYLE');
+        const el = document.createElement('STYLE');
         el.type = 'text/css';
         el.id = GM_info.script.namespace.toLowerCase().replace('.','-');
         el.innerText = css.replace(/[\s]{2,}/g,' ');
@@ -227,36 +225,41 @@
     /**
      * Render game info.
      *
-     * @param  {String}     id    AppID of the game
-     * @param  {Object}     data  Object: { tier: {String}, score: {?Float}, count: {?Integer} }
+     * @param  {String}     id      AppID of the game
+     * @param  {String}     species Type of product, can be "app" (for single game) or "sub" (for package)
+     * @param  {Object}     data    Object: { tier: {String}, score: {?Float}, count: {?Integer} }
      * @param  {DomElement} game
      * @return {Void}
      */
-    function renderGameInfo(id, data, game)
+    function renderGameInfo(id, species, data, game)
     {
-        let el = document.createElement('A');
+        const el = document.createElement('A');
 
-        if(game.querySelector('a[href^="https://store.steampowered.com/"], a[href^="http://store.steampowered.com/"]').href.includes('/sub/') && PackagesData.has(id)) id = PackagesData.get(id);
+        if(species == 'sub' && PackagesData.has(id)) id = PackagesData.get(id);
 
-        let tooltip = '<div class="protondb_tooltip">' +
-                          '<span>ProtonDB report:</span>' +
-                          '<dl><dt>Game tier:</dt><dd class="protondb_tier_color">' + ProtonDB_Tier[data.tier].name + '</dd>' +
-                          (data.recent ? '<dt>Recent tier:</dt><dd class="protondb_tier_' + ProtonDB_Tier[data.recent].name + '">' + ProtonDB_Tier[data.recent].name + '</dd>' : '') +
-                          (data.preTier ? '<dt>Provisional tier:</dt><dd class="protondb_tier_' + ProtonDB_Tier[data.preTier].name + '">' + ProtonDB_Tier[data.preTier].name + '</dd>' : '') +
-                          (data.score ? '<dt>Score:</dt><dd>' + Math.round(parseFloat(data.score) * 100) + '%</dd>' : '') + '</dl>' +
-                          '<p class="protondb_tier_color">' + ProtonDB_Tier[data.tier].comment + '</p>' +
-                          (data.count ? '<small>Based on ' + data.count + ' player report(s).</small>' : '') +
-                      '</div>';
+        const tooltip = `<div class="protondb_tooltip">
+                           <span>ProtonDB report:</span>
+                           <dl>
+                             <dt>Game tier:</dt><dd class="protondb_tier_color">${ProtonDB_Tier[data.tier].name}</dd>
+                             ${data.recent ? '<dt>Recent tier:</dt><dd class="protondb_tier_' + ProtonDB_Tier[data.recent].name + '">' + ProtonDB_Tier[data.recent].name + '</dd>' : ''}
+                             ${data.preTier ? '<dt>Provisional tier:</dt><dd class="protondb_tier_' + ProtonDB_Tier[data.preTier].name + '">' + ProtonDB_Tier[data.preTier].name + '</dd>' : ''}
+                             ${data.score ? '<dt>Score:</dt><dd>' + Math.round(parseFloat(data.score) * 100) + '%</dd>' : ''}
+                           </dl>
+                           <p class="protondb_tier_color">${ProtonDB_Tier[data.tier].comment}</p>
+                           ${(data.count ? '<small>Based on ' + data.count + ' player report(s).</small>' : '')}
+                       </div>`;
 
-        el.setAttribute('href', URL.GamePage.ProtonDB.replace('{%appid%}', id));
-        el.setAttribute('target', '_blank');
-        el.setAttribute('rel', 'nofollow noopener');
-        el.classList.add('protondb_info', 'protondb_tier_' + ProtonDB_Tier[data.tier].name);
-        el.innerHTML = tooltip + '<i class="fa fa-linux"></i><span>' + ProtonDB_Tier[data.tier].displayName + '</span>' + (ProtonDB_Tier[data.tier].icon ? '<i class="fa ' + ProtonDB_Tier[data.tier].icon + '"></i>' : '');
+        el.href = URL.GamePage.ProtonDB.replace('{%appid%}', id);
+        el.target = '_blank';
+        el.rel = 'nofollow noopener';
+        el.classList.add('protondb_info', `protondb_tier_${ProtonDB_Tier[data.tier].name}`);
+
+        el.innerHTML = `${tooltip.replace(/[\s]{2,}/g,' ')}<i class="fa fa-linux"></i><span>${ProtonDB_Tier[data.tier].displayName}</span>${ProtonDB_Tier[data.tier].icon ? '<i class="fa ' + ProtonDB_Tier[data.tier].icon + '"></i>' : ''}`;
 
         if(game.classList.contains('featured__outer-wrap')) el.classList.add('featured__column');
 
-        game.querySelector('.giveaway__links > a:last-of-type, .featured__columns > a:last-of-type, .table__column--width-fill > p:last-of-type').appendChild(el);
+        game.querySelector('.giveaway__links > a:last-of-type, .featured__columns > .featured__column:first-of-type')?.insertAdjacentElement('afterend', el) ||
+        game.querySelector('.table__column--width-fill > p:last-of-type > *:first-child')?.insertAdjacentElement('beforebegin', el);
     }
 
     /**
@@ -286,6 +289,7 @@
 
         let data = null,
             r = await _fetch(URL.API.ProtonDB.replace('{%appid%}', id));
+
         count_requests.protondb++;
 
         if(!r || !r.tier)
@@ -322,7 +326,7 @@
 
         if(PackagesData.has(id))
         {
-            let gid = PackagesData.get(id);
+            const gid = PackagesData.get(id);
             if(CACHE.has(gid)) return CACHE.get(gid);
 
             data = await loadGameInfo(gid);
@@ -331,7 +335,7 @@
         {
             await _sleep(330); // wait 330ms (0.33s) to prevent spamming requests
 
-            let r = await _fetch(URL.API.Steam.Package.replace('{%appid%}', id));
+            const r = await _fetch(URL.API.Steam.Package.replace('{%appid%}', id));
             count_requests.steam++;
 
             if(!r || !r[id] || !r[id].success)
@@ -344,8 +348,8 @@
             }
             else
             {
-                let ids = r[id].data.apps.map(item => item.id),
-                    gid = Math.min(...ids); // get lowest AppID in package -> it should be base game
+                const ids = r[id].data.apps.map(item => item.id),
+                      gid = Math.min(...ids); // get lowest AppID in package -> it should be base game
 
                 PackagesData.add(id, gid).save();
 
@@ -366,23 +370,23 @@
      */
     async function processGame(el)
     {
-        let a = el.querySelector('a[href^="https://store.steampowered.com/"], a[href^="http://store.steampowered.com/"]');
+        const a = el.querySelector('a[href^="https://store.steampowered.com/"], a[href^="http://store.steampowered.com/"], a[style*="akamaihd.net/steam/apps/"]');
         if(!a) return;
 
-        let id = a.href.match(/\/(?:app|sub)\/([\d]+)/i)[1],
-            data = null
+        let [_, species, id] = (a.href.includes('/giveaway/') ? a.style.backgroundImage : a.href).match(/\/(apps?|subs?)\/([\d]+)/i),
+            data = null;
+        species = species.substr(0,3);
 
         if(CACHE.has(id))
         {
             data = CACHE.get(id);
-
             if((Date.now() - data.t) > cache_lifetime) data = null;
         }
 
-        if(!data) data = ( a.href.includes('/app/') ? await loadGameInfo(id) : await loadPackageInfo(id));
+        if(!data) data = ( species == 'app' ? await loadGameInfo(id) : await loadPackageInfo(id));
 
         el.dataset.appid = id;
-        renderGameInfo(id, data, el);
+        renderGameInfo(id, species, data, el);
     }
 
     /**
@@ -393,12 +397,15 @@
      */
     async function processList(sel)
     {
-        await waitPageLoading(sel + ' a[href^="https://store.steampowered.com/"], ' + sel + ' a[href^="http://store.steampowered.com/"]');
+        await waitPageLoading(`${sel} a[href^="https://store.steampowered.com/"], ${sel} a[href^="http://store.steampowered.com/"], ${sel} a[style*="akamaihd.net/steam/apps/"]`);
 
         for(const game of document.querySelectorAll(sel))
         {
             await processGame(game);
         }
+
+        if(updated) CACHE.save();
+        LOG.info(`Job completed. Requests to ProtonDB: ${count_requests.protondb}, to Steam: ${count_requests.steam} (games in the cache: ${CACHE.count()}).`);
     }
 
     /**
@@ -410,12 +417,8 @@
     function process(sel)
     {
         injectCSS();
-        LOG.info('App loaded (version: ' + LOG.version + ')');
-
+        LOG.info(`App loaded (version: ${LOG.version})`);
         processList(sel);
-
-        if(updated) CACHE.save();
-        LOG.info('Job completed. Requests to ProtonDB: ' + count_requests.protondb + ', to Steam: ' + count_requests.steam + ' (games in the cache: ' + CACHE.count() + ').');
     }
 
     /*
