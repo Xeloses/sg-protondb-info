@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us fix problems
 title: "[Bug] ..."
 labels: bug
 assignees: ''
@@ -24,9 +24,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-- Istalled addons [e.g. esgst, adblock]
+ - OS [e.g. Windows 10, Windows 7, Ubuntu 20.4, etc.]
+ - Browser [e.g. Chrome, Firefox, Safari, etc.] *(Microsoft IE/Edge are not supported)*
+ - Browser version [e.g. 22]
+ - Istalled addons [e.g. ESGST, adBlock, uMatrix, noScript, LocalCDN, etc.]
 
 **Additional context**
 Add any other context about the problem here.
