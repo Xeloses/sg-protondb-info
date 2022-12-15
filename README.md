@@ -67,11 +67,17 @@ To reduce the count of requests to the Steam and ProtonDB servers (and prevent b
 2. Install userscript: [install](https://raw.githubusercontent.com/Xeloses/sg-protondb-info/master/sg-protondb-info.user.js)
 
 ## Version history:
+* 1.0.0.5
+    [\*] Fixed bug with ProtonDB data caching.
+    [\*] Fixed information element positioning.
+    [\*] CSS tweaks.
+* 1.0.0.4
+    [\*] CSS tweaks.
+* 1.0.0.3
+    [+] Process User' and Group' giveaways pages.
+* 1.0.0.2
+    [\*] Fix for giveaways search page.
+* 1.0.0.1
+    [+] Add cache expiration time *(default: 1 week)*.
 * 1.0.0
     * Initial release.
-* 1.0.0.1
-    * Add cache expiration time *(default: 1 week)*.
-* 1.0.0.2
-    * Fix for giveaways search page.
-* 1.0.0.3
-    * Process User' and Group' giveaways pages.
